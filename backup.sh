@@ -70,12 +70,6 @@ log-warning () {
   echo -e "\033[0;33mWARNING:\033[0m $*"
 }
 
-# Check for missing encouraged arguments
-if ! $SUPPRESS_WARNINGS; then
-  if [[ $SCREEN_NAME == "" ]]; then
-    log-warning "Minecraft screen name not specified (use -s)"
-  fi
-fi
 # Check for required arguments
 MISSING_CONFIGURATION=false
 if [[ $SERVER_WORLD == "" ]]; then
@@ -102,14 +96,7 @@ message-players () {
 }
 execute-command () {
   local COMMAND=$1
-  if [[ $SCREEN_NAME != "" ]]; then
-    case $WINDOW_MANAGER in
-      "screen") screen -S $SCREEN_NAME -p 0 -X stuff "$COMMAND$(printf \\r)"
-        ;;
-      "tmux") tmux send-keys -t $SCREEN_NAME "$COMMAND" ENTER
-        ;;
-    esac
-  fi
+  mcrcon $COMMAND
 }
 message-players-error () {
   local MESSAGE=$1
@@ -129,7 +116,7 @@ message-players-color () {
     echo "$MESSAGE ($HOVER_MESSAGE)"
   fi
   if $ENABLE_CHAT_MESSAGES; then
-    execute-command "tellraw @a [\"\",{\"text\":\"[$PREFIX] \",\"color\":\"gray\",\"italic\":true},{\"text\":\"$MESSAGE\",\"color\":\"$COLOR\",\"italic\":true,\"hoverEvent\":{\"action\":\"show_text\",\"value\":{\"text\":\"\",\"extra\":[{\"text\":\"$HOVER_MESSAGE\"}]}}}]"
+    execute-command "say $MESSAGE"
   fi
 }
 
