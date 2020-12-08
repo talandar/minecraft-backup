@@ -21,12 +21,13 @@ PREFIX="Backup" # Shows in the chat message
 DEBUG=false # Enable debug messages
 SUPPRESS_WARNINGS=false # Suppress warnings
 WINDOW_MANAGER="screen" # Choices: screen, tmux
+MCRCON_PASS=""
 
 # Other Variables (do not modify)
 DATE_FORMAT="%F_%H-%M-%S"
 TIMESTAMP=$(date +$DATE_FORMAT)
 
-while getopts 'a:cd:e:f:hi:l:m:o:p:qs:vw:' FLAG; do
+while getopts 'a:cd:e:f:hi:l:m:o:p:qr:s:vw:' FLAG; do
   case $FLAG in
     a) COMPRESSION_ALGORITHM=$OPTARG ;;
     c) ENABLE_CHAT_MESSAGES=true ;;
@@ -46,7 +47,7 @@ while getopts 'a:cd:e:f:hi:l:m:o:p:qs:vw:' FLAG; do
        echo "-o    Output directory"
        echo "-p    Prefix that shows in Minecraft chat (default: Backup)"
        echo "-q    Suppress warnings"
-       echo "-s    Minecraft server screen name"
+       echo "-r    minecraft rcon password"
        echo "-v    Verbose mode"
        echo "-w    Window manager: screen (default) or tmux"
        exit 0
@@ -57,6 +58,7 @@ while getopts 'a:cd:e:f:hi:l:m:o:p:qs:vw:' FLAG; do
     o) BACKUP_DIRECTORY=$OPTARG ;;
     p) PREFIX=$OPTARG ;;
     q) SUPPRESS_WARNINGS=true ;;
+	r) MCRCON_PASS=$OPTARG ;;
     s) SCREEN_NAME=$OPTARG ;;
     v) DEBUG=true ;;
     w) WINDOW_MANAGER=$OPTARG ;;
@@ -96,7 +98,7 @@ message-players () {
 }
 execute-command () {
   local COMMAND=$1
-  mcrcon $COMMAND
+  mcrcon -p $MCRCON_PASS $COMMAND
 }
 message-players-error () {
   local MESSAGE=$1
@@ -223,6 +225,12 @@ delete-thinning () {
 # Disable world autosaving
 execute-command "save-off"
 
+# Force save to clean up
+execute-command "save-all"
+
+# Wait for sleep to finish
+sleep 5
+
 # Backup world
 START_TIME=$(date +"%s")
 case $COMPRESSION_ALGORITHM in
@@ -239,8 +247,6 @@ END_TIME=$(date +"%s")
 # Enable world autosaving
 execute-command "save-on"
 
-# Save the world
-execute-command "save-all"
 
 # Delete old backups
 delete-old-backups () {
