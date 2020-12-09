@@ -233,14 +233,9 @@ sleep 5
 
 # Backup world
 START_TIME=$(date +"%s")
-case $COMPRESSION_ALGORITHM in
-  "") # No compression
-    tar -cf $ARCHIVE_PATH -C $SERVER_WORLD .
-    ;;
-  *) # With compression
-    tar -cf - -C $SERVER_WORLD . | $COMPRESSION_ALGORITHM -cv -$COMPRESSION_LEVEL - > $ARCHIVE_PATH 2>> /dev/null
-    ;;
-esac
+
+tar -czf $ARCHIVE_PATH $SERVER_WORLD/world $SERVER_WORLD/world_nether $SERVER_WORLD/world_the_end	
+
 sync
 END_TIME=$(date +"%s")
 
